@@ -53,10 +53,10 @@ let audio: HTMLAudioElement = new Audio('/epic-cinematic-trailer-113981.mp3');
 
 //functions
 async function loader() {
-  PIXI.Assets.load('../sprites/new/ArcadeClassic.ttf');
+  await PIXI.Assets.load('/ArcadeClassic.ttf');
   await PIXI.Assets.load('/SSIS__logo.png');
   sheet = await PIXI.Assets.load('/sprites.json');
-  PIXI.Assets.load('/displacement_map_repeat.jpg');
+  await PIXI.Assets.load('/displacement_map_repeat.jpg');
   PIXI.Assets.add('introBackground', '/SSIS__logo.png');
   await PIXI.Assets.load('introBackground');
 }
