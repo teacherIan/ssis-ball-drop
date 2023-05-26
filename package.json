@@ -18,6 +18,7 @@
     "@pixi/filter-ascii": "^5.1.1",
     "@pixi/filter-pixelate": "^5.1.1",
     "@pixi/filter-shockwave": "^5.1.1",
+    "firebase": "^9.22.1",
     "gsap": "^3.11.5",
     "pixi.js": "^7.2.4"
   }
