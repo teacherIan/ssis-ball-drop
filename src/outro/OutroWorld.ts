@@ -8,6 +8,8 @@ import { PixiPlugin } from 'gsap/PixiPlugin.js';
 gsap.registerPlugin(PixiPlugin);
 PixiPlugin.registerPIXI(PIXI);
 
+PIXI.Filter.defaultResolution = 2;
+
 export class OutroWorld {
   private App;
   private img;
@@ -53,14 +55,13 @@ export class OutroWorld {
       displacementSprite
     );
 
-    displacementSpriteFilter.resolution = 2;
-    displacementSpriteFilter.autoFit = true;
+    displacementSpriteFilter.autoFit = false;
     displacementSpriteFilter.scale.x = 600;
-    // displacementSpriteFilter.scale.y = 300;
+    displacementSpriteFilter.scale.y = 300;
+    displacementSpriteFilter.padding = 100;
 
     displacementSprite.texture.baseTexture.wrapMode = PIXI.WRAP_MODES.REPEAT;
 
-    asciiFilter.resolution = 2;
     const filter = new PixelateFilter();
     filter.size = 6;
     image.filters = [asciiFilter, displacementSpriteFilter];

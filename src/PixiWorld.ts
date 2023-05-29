@@ -1,5 +1,7 @@
 import * as PIXI from 'pixi.js';
 
+PIXI.Filter.defaultResolution = 2;
+
 export default class PixiWorld {
   private app: PIXI.Application;
   private stage: PIXI.Container;
@@ -11,6 +13,7 @@ export default class PixiWorld {
   private counterText: PIXI.BitmapText;
   private counter: number;
   public titleText: PIXI.BitmapText;
+  private particleContainer: PIXI.ParticleContainer;
 
   constructor(
     parent: HTMLCanvasElement,
@@ -26,6 +29,13 @@ export default class PixiWorld {
     this.ballSize = ballSize;
     this.sheet = sheet;
     this.counter = 0;
+    this.particleContainer = new PIXI.ParticleContainer(10000, {
+      scale: true,
+      position: true,
+      rotation: true,
+      uvs: true,
+      alpha: true,
+    });
     this.app = new PIXI.Application({
       view: parent,
       resizeTo: parent,
@@ -38,6 +48,7 @@ export default class PixiWorld {
       powerPreference: 'high-performance',
     });
     this.stage = this.app.stage;
+    this.App.stage.addChild(this.particleContainer);
     this.app.stage.sortableChildren = true;
     this.titleText = this.createTitleText();
     this.createLeftWall();
@@ -52,6 +63,10 @@ export default class PixiWorld {
     return this.stage;
   }
 
+  public get ParticleContainer(): PIXI.ParticleContainer {
+    return this.particleContainer;
+  }
+
   public createSphere(size: number): PIXI.Sprite {
     const sphere = PIXI.Sprite.from(this.sheet.textures[this.texture]);
     sphere.scale.set(size * this.ballSize);
@@ -60,8 +75,6 @@ export default class PixiWorld {
   }
 
   private createTitleText() {
-    console.log(PIXI.BitmapFont.available);
-
     const textSprite: PIXI.BitmapText = new PIXI.BitmapText(this.title, {
       fontName: 'myFont',
       fontSize: 120,

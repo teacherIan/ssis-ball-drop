@@ -4,6 +4,8 @@ import { AsciiFilter } from '@pixi/filter-ascii';
 import { AdvancedBloomFilter } from '@pixi/filter-advanced-bloom';
 import { PixelateFilter } from '@pixi/filter-pixelate';
 
+PIXI.Filter.defaultResolution = 2;
+
 export default class IntroWorld {
   private app: PIXI.Application;
   private stage: PIXI.Container;
@@ -19,9 +21,11 @@ export default class IntroWorld {
       height: window.innerHeight,
       backgroundColor: 0x101935,
       backgroundAlpha: 1,
-      antialias: true,
+      // antialias: true,
       resizeTo: parent,
       powerPreference: 'high-performance',
+      resolution: Math.min(window.devicePixelRatio, 2),
+      autoDensity: true,
     });
     this.stage = this.app.stage;
     this.element = document.body.appendChild(
@@ -52,7 +56,7 @@ export default class IntroWorld {
       dropShadowBlur: 0,
       dropShadowAngle: Math.PI / 6,
       dropShadowDistance: 20,
-      // letterSpacing: 20,
+      letterSpacing: 10,
     });
     const richText = new PIXI.Text(text, style);
     richText.x = window.innerWidth / 2;
@@ -82,11 +86,11 @@ export default class IntroWorld {
     let bg = await PIXI.Assets.load('/SSIS__logo.png');
     console.log(bg);
     const backgroundSprite = new PIXI.Sprite(bg);
-    backgroundSprite.interactive = true;
+    backgroundSprite.eventMode = 'dynamic';
     backgroundSprite.cursor = 'pointer';
     this.stage.addChild(backgroundSprite);
-    backgroundSprite.width = window.innerHeight * 1.3;
-    backgroundSprite.height = window.innerHeight * 1.3;
+    backgroundSprite.width = window.innerHeight * 1.5;
+    backgroundSprite.height = window.innerHeight * 1.5;
     backgroundSprite.anchor.set(0.5);
     backgroundSprite.x = this.app.screen.width / 2;
     backgroundSprite.y = this.app.screen.height / 2;
@@ -107,69 +111,62 @@ export default class IntroWorld {
       backgroundSprite.y = window.innerHeight / 2;
     });
 
-    displacementSpriteFilter.scale.x = 600;
-    displacementSpriteFilter.scale.y = 300;
-    displacementSpriteFilter.resolution = 2;
-    displacementSpriteFilter.autoFit = true;
+    displacementSpriteFilter.scale.x = 64;
+    displacementSpriteFilter.scale.y = 64;
+
+    displacementSpriteFilter.autoFit = false;
+    displacementSpriteFilter.padding = 100;
 
     displacementSprite.texture.baseTexture.wrapMode = PIXI.WRAP_MODES.REPEAT;
 
     const asciiFilter = new AsciiFilter();
-    asciiFilter.size = 7; //6
+    asciiFilter.size = 6; //6
     // asciiFilter.autoFit = true;
     // asciiFilter.padding = 100;
     // asciiFilter.blendMode = PIXI.BLEND_MODES.ADD;
-    asciiFilter.resolution = 2;
 
-    const shockWaveFilter = new ShockwaveFilter(
-      [Math.random() * window.innerWidth, Math.random() * window.innerHeight],
-      {
-        amplitude: 200,
-        wavelength: 400,
-        brightness: 1,
-        speed: 50,
-        radius: -1,
-      }
-    );
+    // const shockWaveFilter = new ShockwaveFilter(
+    //   [Math.random() * window.innerWidth, Math.random() * window.innerHeight],
+    //   {
+    //     amplitude: 200,
+    //     wavelength: 400,
+    //     brightness: 1,
+    //     speed: 50,
+    //     radius: -1,
+    //   }
+    // );
 
     const bloomFilter = new AdvancedBloomFilter({
-      threshold: 1,
+      threshold: 0.5,
       bloomScale: 50.5,
-      brightness: 2.1,
+      brightness: 2,
       blur: 0.0,
       quality: 20.0,
     });
 
-    const pixelateFilter = new PixelateFilter(12);
+    const pixelateFilter = new PixelateFilter(6);
 
-    this.stage.filters = [
-      displacementSpriteFilter,
-      bloomFilter,
-      // shockWaveFilter,
-      // pixelateFilter,
-      asciiFilter,
-    ];
+    // let num = Math.random();
+
+    // if (num > 0.5) {
+    //   this.stage.filters = [bloomFilter, asciiFilter, displacementSpriteFilter];
+    // } else {
+    //   this.stage.filters = [displacementSpriteFilter];
+    // }
+
+    this.stage.filters = [displacementSpriteFilter];
 
     let currentTime = 0;
 
     this.app.ticker.add(() => {
       backgroundSprite.rotation += 0.0005;
 
-      displacementSprite.x += 1;
-      displacementSprite.y += 1;
-      currentTime += 0.005;
+      displacementSprite.x += 0.5;
+      displacementSprite.y += 0.5;
+      currentTime += 0.001;
 
-      displacementSpriteFilter.scale.x = Math.cos(currentTime) * 200;
-      displacementSpriteFilter.scale.y = 100;
-
-      shockWaveFilter.time += 0.1;
-      if (shockWaveFilter.time > 60) {
-        shockWaveFilter.time = 0;
-        shockWaveFilter.center = [
-          Math.random() * window.innerWidth,
-          Math.random() * window.innerHeight,
-        ];
-      }
+      displacementSpriteFilter.scale.x = Math.cos(currentTime) * 300;
+      // displacementSpriteFilter.scale.y = 100;
     });
 
     return displacementSprite;

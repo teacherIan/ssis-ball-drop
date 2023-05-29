@@ -121,7 +121,7 @@ export default class Simulation {
 
   public createSphere(x: number, y: number, size: number) {
     const sphere = this.app.createSphere(size);
-    this.app.App.stage.addChild(sphere);
+    this.app.ParticleContainer.addChild(sphere);
     const physicsSphere = this.world.createPhysicsSphere(x, y, size);
     this.sphereArr.push({ render: sphere, physics: physicsSphere });
   }

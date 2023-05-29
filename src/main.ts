@@ -51,6 +51,110 @@ let textures;
 let gameSpeed = 150;
 let audio: HTMLAudioElement = new Audio('/epic-cinematic-trailer-113981.mp3');
 
+async function getPracticeData() {
+  text.text = 'START';
+  rubyMaxAmountDB = 200;
+  amberMaxAmountDB = 240;
+  pearlMaxAmountDB = 280;
+  sapphireMaxAmountDB = 320;
+
+  winningAmount = Math.max(
+    rubyMaxAmountDB,
+    amberMaxAmountDB,
+    pearlMaxAmountDB,
+    sapphireMaxAmountDB
+  );
+  if (winningAmount === rubyMaxAmountDB) {
+    winningHouse = 'Ruby';
+  } else if (winningAmount === amberMaxAmountDB) {
+    winningHouse = 'Amber';
+  } else if (winningAmount === pearlMaxAmountDB) {
+    winningHouse = 'Pearl';
+  } else if (winningAmount === sapphireMaxAmountDB) {
+    winningHouse = 'Sapphire';
+  }
+  setSettings(winningAmount);
+}
+
+async function getData() {
+  let querySnapshot = await getDocs(collection(db, 'points'));
+
+  querySnapshot.forEach((doc) => {
+    if (doc.data().house === 'Ruby') {
+      rubyMaxAmountDB += parseInt(doc.data().points);
+    } else if (doc.data().house === 'Amber') {
+      amberMaxAmountDB += parseInt(doc.data().points);
+    } else if (doc.data().house === 'Pearl') {
+      pearlMaxAmountDB += parseInt(doc.data().points);
+    } else if (doc.data().house === 'Sapphire') {
+      sapphireMaxAmountDB += parseInt(doc.data().points);
+    }
+    total += parseInt(doc.data().points);
+  });
+
+  winningAmount = Math.max(
+    rubyMaxAmountDB,
+    amberMaxAmountDB,
+    pearlMaxAmountDB,
+    sapphireMaxAmountDB
+  );
+  if (winningAmount === rubyMaxAmountDB) {
+    winningHouse = 'Ruby';
+  } else if (winningAmount === amberMaxAmountDB) {
+    winningHouse = 'Amber';
+  } else if (winningAmount === pearlMaxAmountDB) {
+    winningHouse = 'Pearl';
+  } else if (winningAmount === sapphireMaxAmountDB) {
+    winningHouse = 'Sapphire';
+  }
+  setSettings(winningAmount);
+
+  //update text depending on if a connection to the database was established
+  return new Promise((resolve, reject) => {
+    if (querySnapshot.empty) {
+      text.text = 'DB Error';
+      reject('Not loaded');
+    } else {
+      text.text = 'START';
+      resolve('data loaded');
+    }
+  });
+}
+
+function startGame() {
+  //start with keyboard
+  // document.addEventListener('keyup', () => {
+  //   gameLogic();
+  // });
+
+  introCanvas.addEventListener('click', () => {
+    gameLogic();
+  });
+}
+
+function startIntroScene() {
+  PIXI.BitmapFont.from('myFont', {
+    fontFamily: 'ARCADECLASSIC',
+    fontSize: 200,
+    fill: 0xffffff,
+    align: 'center',
+    stroke: '#000000',
+    strokeThickness: 10,
+    dropShadow: true,
+    dropShadowColor: '#000000',
+    dropShadowBlur: 1,
+  });
+  introWorld = new IntroWorld(introCanvas as HTMLCanvasElement);
+  introStage = introWorld.getStage();
+  introApp = introWorld.getApp();
+
+  text = introWorld.createText('LOADING');
+  // getPracticeData(); // no external db
+
+  introStage.addChild(text);
+  text.zIndex = 100;
+}
+
 //functions
 async function loader() {
   await PIXI.Assets.load('/ArcadeClassic.ttf');
@@ -59,9 +163,14 @@ async function loader() {
   await PIXI.Assets.load('/displacement_map_repeat.jpg');
   PIXI.Assets.add('introBackground', '/SSIS__logo.png');
   await PIXI.Assets.load('introBackground');
+  await RAPIER.init();
+
+  return new Promise((resolve, reject) => {
+    resolve('Loaded');
+  });
 }
 
-async function setSettings(max: number) {
+function setSettings(max: number) {
   if (max > 100) {
     gameSpeed = 200;
     ballSize = 0.4;
@@ -106,261 +215,196 @@ async function setSettings(max: number) {
   }
   if (max > 4000) {
     gameSpeed = 16;
-    maxMultiplier = 5;
+    maxMultiplier = 4;
     ballSize = 0.04;
   }
   if (max > 5000) {
     gameSpeed = 16;
-    maxMultiplier = 5;
+    maxMultiplier = 4;
     ballSize = 0.03;
   }
   if (max > 6000) {
     gameSpeed = 5;
-    maxMultiplier = 6;
+    maxMultiplier = 5;
     ballSize = 0.02;
   }
-}
 
-async function getPracticeData() {
-  text.text = 'Start';
-  rubyMaxAmountDB = 200;
-  amberMaxAmountDB = 240;
-  pearlMaxAmountDB = 280;
-  sapphireMaxAmountDB = 320;
-
-  winningAmount = Math.max(
-    rubyMaxAmountDB,
-    amberMaxAmountDB,
-    pearlMaxAmountDB,
-    sapphireMaxAmountDB
-  );
-  if (winningAmount === rubyMaxAmountDB) {
-    winningHouse = 'Ruby';
-  } else if (winningAmount === amberMaxAmountDB) {
-    winningHouse = 'Amber';
-  } else if (winningAmount === pearlMaxAmountDB) {
-    winningHouse = 'Pearl';
-  } else if (winningAmount === sapphireMaxAmountDB) {
-    winningHouse = 'Sapphire';
+  if (window.innerHeight < 1000) {
+    ballSize -= 0.005;
   }
-  setSettings(winningAmount);
 }
 
-async function getData() {
-  await getDocs(collection(db, 'points')).then((querySnapshot) => {
-    text.text = 'Start';
-    querySnapshot.forEach((doc) => {
-      if (doc.data().house === 'Ruby') {
-        rubyMaxAmountDB += parseInt(doc.data().points);
-      } else if (doc.data().house === 'Amber') {
-        amberMaxAmountDB += parseInt(doc.data().points);
-      } else if (doc.data().house === 'Pearl') {
-        pearlMaxAmountDB += parseInt(doc.data().points);
-      } else if (doc.data().house === 'Sapphire') {
-        sapphireMaxAmountDB += parseInt(doc.data().points);
-      }
-      total += parseInt(doc.data().points);
-    });
+function gameLogic() {
+  audio.play();
+  if (clicked) return;
+  clicked = true;
+  text.text = `DROP!`;
+  introCanvas.requestFullscreen();
+  introCanvas.width = window.innerWidth;
+  introCanvas.height = window.innerHeight;
 
-    winningAmount = Math.max(
-      rubyMaxAmountDB,
-      amberMaxAmountDB,
-      pearlMaxAmountDB,
-      sapphireMaxAmountDB
-    );
-    if (winningAmount === rubyMaxAmountDB) {
-      winningHouse = 'Ruby';
-    } else if (winningAmount === amberMaxAmountDB) {
-      winningHouse = 'Amber';
-    } else if (winningAmount === pearlMaxAmountDB) {
-      winningHouse = 'Pearl';
-    } else if (winningAmount === sapphireMaxAmountDB) {
-      winningHouse = 'Sapphire';
-    }
+  dropContainer.innerHTML = `<canvas class="canvas" id="canvasA"></canvas>
+<canvas class="canvas" id="canvasB"></canvas>
+<canvas class="canvas" id="canvasC"></canvas>
+<canvas class="canvas" id="canvasD"></canvas>`;
 
-    setSettings(winningAmount);
-  });
-}
-loader()
-  .then(() => {
-    RAPIER.init();
-  })
-  //start intro scene
-  .then(() => {
-    PIXI.BitmapFont.from('myFont', {
-      fontFamily: 'ARCADECLASSIC',
-      fontSize: 200,
-      fill: 0xffffff,
-      align: 'center',
-      stroke: '#000000',
-      strokeThickness: 10,
-      dropShadow: true,
-      dropShadowColor: '#000000',
-      dropShadowBlur: 1,
-    });
-    introWorld = new IntroWorld(introCanvas as HTMLCanvasElement);
-    introStage = introWorld.getStage();
-    introApp = introWorld.getApp();
+  introCanvas.style.zIndex = '-1';
+  gsap
+    .to(introStage, {
+      pixi: {
+        x: window.innerWidth + 100,
+      },
+      duration: 10,
+      ease: 'expo.in',
+    })
+    .then(() => {
+      // introStage.destroy();
 
-    text = introWorld.createText('LOADING');
-    // getPracticeData(); // no external db
-    getData();
-    introStage.addChild(text);
-    text.zIndex = 100;
-  })
+      ruby = new Simulation(
+        new pixiWorld(
+          document.getElementById('canvasA') as HTMLCanvasElement,
+          'Orb_08.png',
+          ballSize,
+          'Ruby',
+          0xc11c22,
+          sheet
+        ),
+        new PhysisWorld(ballSize),
+        rubyMaxAmountDB,
+        winningHouse,
+        gameSpeed,
+        maxMultiplier
+      );
 
-  .then(() => {
-    introCanvas.addEventListener('click', () => {
-      audio.play();
-      if (clicked) return;
-      clicked = true;
-      text.text = `DROP!`;
-      introCanvas.requestFullscreen();
-      introCanvas.width = window.innerWidth;
-      introCanvas.height = window.innerHeight;
+      amber = new Simulation(
+        new pixiWorld(
+          document.getElementById('canvasB') as HTMLCanvasElement,
+          'Orb_09.png',
+          ballSize,
+          'Amber',
+          0xe46725,
+          sheet
+        ),
+        new PhysisWorld(ballSize),
+        amberMaxAmountDB,
+        winningHouse,
+        gameSpeed,
+        maxMultiplier
+      );
 
-      dropContainer.innerHTML = `<canvas class="canvas" id="canvasA"></canvas>
-    <canvas class="canvas" id="canvasB"></canvas>
-    <canvas class="canvas" id="canvasC"></canvas>
-    <canvas class="canvas" id="canvasD"></canvas>`;
+      pearl = new Simulation(
+        new pixiWorld(
+          document.getElementById('canvasC') as HTMLCanvasElement,
+          'Orb_20.png',
+          ballSize,
+          'Pearl',
+          0xffffff,
+          sheet
+        ),
+        new PhysisWorld(ballSize),
+        pearlMaxAmountDB,
+        winningHouse,
+        gameSpeed,
+        maxMultiplier
+      );
 
-      introCanvas.style.zIndex = '-1';
-      gsap
-        .to(introStage, {
-          pixi: {
-            x: window.innerWidth + 100,
-          },
-          duration: 10,
-          ease: 'expo.in',
+      sapphire = new Simulation(
+        new pixiWorld(
+          document.getElementById('canvasD') as HTMLCanvasElement,
+          'Orb_11.png',
+          ballSize,
+          'Sapphire',
+          0x1271b5,
+          sheet
+        ),
+        new PhysisWorld(ballSize),
+        sapphireMaxAmountDB,
+        winningHouse,
+        gameSpeed,
+        maxMultiplier
+      );
+    })
+    .then(() => {
+      introCanvas.style.display = 'none';
+      introApp.destroy();
+
+      let timeline = gsap.timeline();
+      timeline.to(ruby.App.titleText, {
+        pixi: {
+          scaleY: 1.3,
+          scaleX: window.innerWidth < 1600 ? 1.4 : 1.5,
+        },
+        duration: 1.7,
+        ease: 'bounce',
+      });
+      timeline.to(amber.App.titleText, {
+        pixi: {
+          scaleY: 1.3,
+          scaleX: window.innerWidth < 1600 ? 1.1 : 1.2,
+        },
+        duration: 1.7,
+        ease: 'bounce',
+      });
+
+      timeline.to(pearl.App.titleText, {
+        pixi: {
+          scaleY: 1.3,
+          scaleX: window.innerWidth < 1600 ? 1.1 : 1.2,
+        },
+        duration: 1.7,
+        ease: 'bounce',
+      });
+
+      timeline.to(sapphire.App.titleText, {
+        pixi: {
+          scaleY: 1.3,
+          scaleX: window.innerWidth < 1600 ? 0.7 : 0.8,
+        },
+        duration: 1.7,
+        ease: 'bounce',
+      });
+      timeline
+        .play()
+        .then(() => {
+          Simulation.started = true;
         })
         .then(() => {
-          // introStage.destroy();
+          gsap.to(
+            [
+              sapphire.App.getCounterText(),
+              ruby.App.getCounterText(),
+              pearl.App.getCounterText(),
+              amber.App.getCounterText(),
+            ],
+            {
+              pixi: {
+                scaleX: window.innerWidth < 1600 ? 0.9 : 1,
 
-          ruby = new Simulation(
-            new pixiWorld(
-              document.getElementById('canvasA') as HTMLCanvasElement,
-              'Orb_08.png',
-              ballSize,
-              'Ruby',
-              0xc11c22,
-              sheet
-            ),
-            new PhysisWorld(ballSize),
-            rubyMaxAmountDB,
-            winningHouse,
-            gameSpeed,
-            maxMultiplier
+                scaleY: 2,
+              },
+              duration: 10,
+            }
           );
-
-          amber = new Simulation(
-            new pixiWorld(
-              document.getElementById('canvasB') as HTMLCanvasElement,
-              'Orb_09.png',
-              ballSize,
-              'Amber',
-              0xe46725,
-              sheet
-            ),
-            new PhysisWorld(ballSize),
-            amberMaxAmountDB,
-            winningHouse,
-            gameSpeed,
-            maxMultiplier
-          );
-
-          pearl = new Simulation(
-            new pixiWorld(
-              document.getElementById('canvasC') as HTMLCanvasElement,
-              'Orb_20.png',
-              ballSize,
-              'Pearl',
-              0xffffff,
-              sheet
-            ),
-            new PhysisWorld(ballSize),
-            pearlMaxAmountDB,
-            winningHouse,
-            gameSpeed,
-            maxMultiplier
-          );
-
-          sapphire = new Simulation(
-            new pixiWorld(
-              document.getElementById('canvasD') as HTMLCanvasElement,
-              'Orb_11.png',
-              ballSize,
-              'Sapphire',
-              0x1271b5,
-              sheet
-            ),
-            new PhysisWorld(ballSize),
-            sapphireMaxAmountDB,
-            winningHouse,
-            gameSpeed,
-            maxMultiplier
-          );
-        })
-        .then(() => {
-          introCanvas.style.display = 'none';
-          introApp.destroy();
-
-          let timeline = gsap.timeline();
-          timeline.to(ruby.App.titleText, {
-            pixi: {
-              scaleY: 1.3,
-              scaleX: 1.5,
-            },
-            duration: 1.7,
-            ease: 'bounce',
-          });
-          timeline.to(amber.App.titleText, {
-            pixi: {
-              scaleY: 1.3,
-              scaleX: 1.2,
-            },
-            duration: 1.7,
-            ease: 'bounce',
-          });
-
-          timeline.to(pearl.App.titleText, {
-            pixi: {
-              scaleY: 1.3,
-              scaleX: 1.2,
-            },
-            duration: 1.7,
-            ease: 'bounce',
-          });
-
-          timeline.to(sapphire.App.titleText, {
-            pixi: {
-              scaleY: 1.3,
-              scaleX: 0.8,
-            },
-            duration: 1.7,
-            ease: 'bounce',
-          });
-          timeline
-            .play()
-            .then(() => {
-              Simulation.started = true;
-            })
-            .then(() => {
-              gsap.to(
-                [
-                  sapphire.App.getCounterText(),
-                  ruby.App.getCounterText(),
-                  pearl.App.getCounterText(),
-                  amber.App.getCounterText(),
-                ],
-                {
-                  pixi: {
-                    scaleX: 1,
-                    scaleY: 2,
-                  },
-                  duration: 10,
-                }
-              );
-            });
         });
     });
+}
+
+/*
+Experience
+*/
+
+//start intro scene after fonts are loaded
+loader()
+  .then(() => {
+    startIntroScene();
+  })
+  .then(() => {
+    getData()
+      .then(() => {
+        startGame();
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   });
+//allows game to start after data is loaded.  Promise is rejected
