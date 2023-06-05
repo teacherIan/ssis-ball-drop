@@ -29,7 +29,7 @@ let maxMultiplier = 1;
 
 let clicked = false;
 
-let sheet: any;
+let sheet: PIXI.Spritesheet;
 let bitmapFonts: PIXI.BitmapFont;
 let introWorld: IntroWorld;
 let introStage: PIXI.Container;
