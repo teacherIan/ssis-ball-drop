@@ -25,7 +25,9 @@ export default class IntroWorld {
       resizeTo: parent,
       powerPreference: 'high-performance',
       resolution: Math.min(window.devicePixelRatio, 2),
-      autoDensity: true,
+      // autoDensity: true,
+
+      // forceCanvas: true,
     });
     this.stage = this.app.stage;
     this.element = document.body.appendChild(
@@ -71,11 +73,12 @@ export default class IntroWorld {
     });
 
     window.addEventListener('resize', () => {
+      console.log('Resize event');
       richText.x = window.innerWidth / 2;
       richText.y = window.innerHeight / 2;
-      window.innerHeight / 4 + 15;
-      this.element.width = window.innerWidth;
-      this.element.height = window.innerHeight;
+      // window.innerHeight / 4 + 15;
+      this.element.width = window.innerWidth / 2;
+      this.element.height = window.innerHeight / 2;
     });
 
     return richText;
@@ -84,7 +87,7 @@ export default class IntroWorld {
   public async createDisplacementSprite() {
     // await PIXI.Assets.cache.get('introBackground');
     let bg = await PIXI.Assets.load('/SSIS__logo.png');
-    console.log(bg);
+
     const backgroundSprite = new PIXI.Sprite(bg);
     backgroundSprite.eventMode = 'dynamic';
     backgroundSprite.cursor = 'pointer';
@@ -105,10 +108,15 @@ export default class IntroWorld {
     );
 
     window.addEventListener('resize', () => {
-      backgroundSprite.width = window.innerHeight * 1.5;
-      backgroundSprite.height = window.innerHeight * 1.5;
-      backgroundSprite.x = window.innerWidth / 2;
-      backgroundSprite.y = window.innerHeight / 2;
+      console.log('Resize event');
+      setTimeout(() => {
+        // this.app.stage.width = window.innerWidth;
+        // this.app.stage.height = window.innerHeight;
+        backgroundSprite.width = this.app.screen.width;
+        backgroundSprite.height = this.app.screen.height;
+        backgroundSprite.x = window.innerWidth / 2;
+        backgroundSprite.y = window.innerHeight / 2;
+      }, 100);
     });
 
     displacementSpriteFilter.scale.x = 64;
@@ -121,20 +129,6 @@ export default class IntroWorld {
 
     const asciiFilter = new AsciiFilter();
     asciiFilter.size = 6; //6
-    // asciiFilter.autoFit = true;
-    // asciiFilter.padding = 100;
-    // asciiFilter.blendMode = PIXI.BLEND_MODES.ADD;
-
-    // const shockWaveFilter = new ShockwaveFilter(
-    //   [Math.random() * window.innerWidth, Math.random() * window.innerHeight],
-    //   {
-    //     amplitude: 200,
-    //     wavelength: 400,
-    //     brightness: 1,
-    //     speed: 50,
-    //     radius: -1,
-    //   }
-    // );
 
     const bloomFilter = new AdvancedBloomFilter({
       threshold: 0.5,
@@ -145,14 +139,6 @@ export default class IntroWorld {
     });
 
     const pixelateFilter = new PixelateFilter(6);
-
-    // let num = Math.random();
-
-    // if (num > 0.5) {
-    //   this.stage.filters = [bloomFilter, asciiFilter, displacementSpriteFilter];
-    // } else {
-    //   this.stage.filters = [displacementSpriteFilter];
-    // }
 
     this.stage.filters = [displacementSpriteFilter];
 
