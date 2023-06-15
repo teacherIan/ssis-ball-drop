@@ -22,7 +22,7 @@ export default class Simulation {
   public static simulationCounter: number = 0;
   private app: PixiWorld;
   private world: PhysisWorld;
-  private sphereArr: IObject[] = [];
+  private sphereArr: IObject[] = []; //Interface IObject links each physics object to a Pixi Sprite
   private counter;
   private interval: number;
   private sphereCounter: number = 0;
@@ -54,17 +54,19 @@ export default class Simulation {
       if (!Simulation.started) {
         return;
       }
-
+      // let random = Math.random()
       // if (random < 0.2) return;
+      // uncomment above line to slow down the simulation if so desired
       if (this.sphereCounter >= this.counter) {
         clearInterval(this.interval);
       }
       let remaining = this.counter - this.sphereCounter;
       let size = Math.min(
-        Math.floor(Math.random() * maxMultiplier) + 1,
+        Math.floor(Math.random() * this.maxMultiplier) + 1,
         remaining
       );
 
+      //creates a new physics/renderer combo
       this.createSphere(
         window.innerWidth / 8 + Math.random() * 100 - 50,
         -Math.random() * 100 - 10,
@@ -72,7 +74,7 @@ export default class Simulation {
       );
       this.sphereCounter += size;
       this.app.updateCounterText(this.sphereCounter);
-    }, gameSpeed);
+    }, this.gameSpeed);
 
     this.app.App.ticker.add((delta: number) => {
       this.sphereArr.forEach((sphere) => {

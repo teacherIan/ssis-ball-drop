@@ -33,7 +33,7 @@ export default class PixiWorld {
       scale: true,
       position: true,
       rotation: true,
-      uvs: true,
+      uvs: false,
       alpha: true,
     });
     this.app = new PIXI.Application({

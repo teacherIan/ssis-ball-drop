@@ -62,8 +62,9 @@ export class OutroWorld {
 
     displacementSprite.texture.baseTexture.wrapMode = PIXI.WRAP_MODES.REPEAT;
 
-    const filter = new PixelateFilter();
-    filter.size = 6;
+    const pixelateFilter = new PixelateFilter();
+    pixelateFilter.size = 6;
+    //flag filters.  asciiFilter can be replaced with pixelateFilter for a different effect
     image.filters = [asciiFilter, displacementSpriteFilter];
 
     this.App.stage.addChild(image);
@@ -77,8 +78,9 @@ export class OutroWorld {
     });
 
     this.App.ticker.add((delta) => {
-      displacementSprite.x += 1;
-      // displacementSprite.y += 1;
+      //increasing or decreasing these values will make the 'flag' waves more/less
+      displacementSprite.x += 0.5;
+      displacementSprite.y += 0.5;
     });
   }
 
@@ -97,6 +99,7 @@ export class OutroWorld {
       return this.App.renderer.generateTexture(confettiIcon);
     });
 
+    //change the variable to have more or less confetti
     let confettiAmount = 70;
     let confetti = new Array(confettiAmount)
       .fill(null)

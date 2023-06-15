@@ -10,27 +10,23 @@ import Simulation from './Simulation';
 import IntroWorld from './intro/IntroWorld';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../db/db';
-const introCanvas = document.getElementById(
-  'intro-canvas'
-) as HTMLCanvasElement;
 import { gsap } from 'gsap';
-//@ts-ignore
+// @ts-ignore
 import { PixiPlugin } from 'gsap/PixiPlugin.js';
-import { OutroWorld } from './outro/OutroWorld';
 gsap.registerPlugin(PixiPlugin);
 PixiPlugin.registerPIXI(PIXI);
 const dropContainer = document.querySelector('.container') as HTMLElement;
+const introCanvas = document.getElementById(
+  'intro-canvas'
+) as HTMLCanvasElement;
 
 //options
 let ballSize = 0.5;
 let maxMultiplier = 1;
 
 //variables
-
 let clicked = false;
-
 let sheet: PIXI.Spritesheet;
-let bitmapFonts: PIXI.BitmapFont;
 let introWorld: IntroWorld;
 let introStage: PIXI.Container;
 let introApp: PIXI.Application;
@@ -38,7 +34,6 @@ let ruby: Simulation,
   amber: Simulation,
   pearl: Simulation,
   sapphire: Simulation;
-
 let rubyMaxAmountDB: number = 0;
 let amberMaxAmountDB: number = 0;
 let pearlMaxAmountDB: number = 0;
@@ -47,92 +42,17 @@ let total: number = 0;
 let text: PIXI.Text;
 let winningAmount: number;
 let winningHouse: string;
-let textures;
 let gameSpeed = 150;
 let audio: HTMLAudioElement = new Audio('/epic-cinematic-trailer-113981.mp3');
 
-async function getPracticeData() {
-  text.text = 'START';
-  rubyMaxAmountDB = 200;
-  amberMaxAmountDB = 240;
-  pearlMaxAmountDB = 280;
-  sapphireMaxAmountDB = 320;
-
-  winningAmount = Math.max(
-    rubyMaxAmountDB,
-    amberMaxAmountDB,
-    pearlMaxAmountDB,
-    sapphireMaxAmountDB
-  );
-  if (winningAmount === rubyMaxAmountDB) {
-    winningHouse = 'Ruby';
-  } else if (winningAmount === amberMaxAmountDB) {
-    winningHouse = 'Amber';
-  } else if (winningAmount === pearlMaxAmountDB) {
-    winningHouse = 'Pearl';
-  } else if (winningAmount === sapphireMaxAmountDB) {
-    winningHouse = 'Sapphire';
-  }
-  setSettings(winningAmount);
-}
-
-async function getData() {
-  let querySnapshot = await getDocs(collection(db, 'points'));
-
-  querySnapshot.forEach((doc) => {
-    if (doc.data().house === 'Ruby') {
-      rubyMaxAmountDB += parseInt(doc.data().points);
-    } else if (doc.data().house === 'Amber') {
-      amberMaxAmountDB += parseInt(doc.data().points);
-    } else if (doc.data().house === 'Pearl') {
-      pearlMaxAmountDB += parseInt(doc.data().points);
-    } else if (doc.data().house === 'Sapphire') {
-      sapphireMaxAmountDB += parseInt(doc.data().points);
-    }
-    total += parseInt(doc.data().points);
-  });
-
-  winningAmount = Math.max(
-    rubyMaxAmountDB,
-    amberMaxAmountDB,
-    pearlMaxAmountDB,
-    sapphireMaxAmountDB
-  );
-  if (winningAmount === rubyMaxAmountDB) {
-    winningHouse = 'Ruby';
-  } else if (winningAmount === amberMaxAmountDB) {
-    winningHouse = 'Amber';
-  } else if (winningAmount === pearlMaxAmountDB) {
-    winningHouse = 'Pearl';
-  } else if (winningAmount === sapphireMaxAmountDB) {
-    winningHouse = 'Sapphire';
-  }
-  setSettings(winningAmount);
-
-  //update text depending on if a connection to the database was established
-  return new Promise((resolve, reject) => {
-    if (querySnapshot.empty) {
-      text.text = 'DB Error';
-      reject('Not loaded');
-    } else {
-      text.text = 'START';
-      resolve('data loaded');
-    }
-  });
-}
-
-function startGame() {
-  //start with keyboard
-  // document.addEventListener('keyup', () => {
-  //   gameLogic();
-  // });
-
-  introCanvas.addEventListener('click', () => {
-    gameLogic();
-  });
-}
-
-function startIntroScene() {
+//functions
+async function loader() {
+  await PIXI.Assets.load('/ArcadeClassic.ttf');
+  await PIXI.Assets.load('/SSIS__logo.png');
+  sheet = await PIXI.Assets.load('/sprites.json');
+  await PIXI.Assets.load('/displacement_map_repeat.jpg');
+  PIXI.Assets.add('introBackground', '/SSIS__logo.png');
+  await PIXI.Assets.load('introBackground');
   PIXI.BitmapFont.from('myFont', {
     fontFamily: 'ARCADECLASSIC',
     fontSize: 200,
@@ -144,25 +64,7 @@ function startIntroScene() {
     dropShadowColor: '#000000',
     dropShadowBlur: 1,
   });
-  introWorld = new IntroWorld(introCanvas as HTMLCanvasElement);
-  introStage = introWorld.getStage();
-  introApp = introWorld.getApp();
-
-  text = introWorld.createText('LOADING');
-  // getPracticeData(); // no external db
-
-  introStage.addChild(text);
-  text.zIndex = 100;
-}
-
-//functions
-async function loader() {
-  await PIXI.Assets.load('/ArcadeClassic.ttf');
-  await PIXI.Assets.load('/SSIS__logo.png');
-  sheet = await PIXI.Assets.load('/sprites.json');
-  await PIXI.Assets.load('/displacement_map_repeat.jpg');
-  PIXI.Assets.add('introBackground', '/SSIS__logo.png');
-  await PIXI.Assets.load('introBackground');
+  //load physics engine
   await RAPIER.init();
 
   return new Promise((resolve, reject) => {
@@ -234,6 +136,97 @@ function setSettings(max: number) {
   }
 }
 
+//use getPracticeData in dev
+async function getPracticeData() {
+  text.text = 'START';
+  rubyMaxAmountDB = 200;
+  amberMaxAmountDB = 240;
+  pearlMaxAmountDB = 280;
+  sapphireMaxAmountDB = 320;
+
+  winningAmount = Math.max(
+    rubyMaxAmountDB,
+    amberMaxAmountDB,
+    pearlMaxAmountDB,
+    sapphireMaxAmountDB
+  );
+  if (winningAmount === rubyMaxAmountDB) {
+    winningHouse = 'Ruby';
+  } else if (winningAmount === amberMaxAmountDB) {
+    winningHouse = 'Amber';
+  } else if (winningAmount === pearlMaxAmountDB) {
+    winningHouse = 'Pearl';
+  } else if (winningAmount === sapphireMaxAmountDB) {
+    winningHouse = 'Sapphire';
+  }
+  setSettings(winningAmount);
+}
+
+async function getData() {
+  let querySnapshot = await getDocs(collection(db, 'points'));
+
+  querySnapshot.forEach((doc) => {
+    if (doc.data().house === 'Ruby') {
+      rubyMaxAmountDB += parseInt(doc.data().points);
+    } else if (doc.data().house === 'Amber') {
+      amberMaxAmountDB += parseInt(doc.data().points);
+    } else if (doc.data().house === 'Pearl') {
+      pearlMaxAmountDB += parseInt(doc.data().points);
+    } else if (doc.data().house === 'Sapphire') {
+      sapphireMaxAmountDB += parseInt(doc.data().points);
+    }
+    total += parseInt(doc.data().points);
+  });
+
+  winningAmount = Math.max(
+    rubyMaxAmountDB,
+    amberMaxAmountDB,
+    pearlMaxAmountDB,
+    sapphireMaxAmountDB
+  );
+  if (winningAmount === rubyMaxAmountDB) {
+    winningHouse = 'Ruby';
+  } else if (winningAmount === amberMaxAmountDB) {
+    winningHouse = 'Amber';
+  } else if (winningAmount === pearlMaxAmountDB) {
+    winningHouse = 'Pearl';
+  } else if (winningAmount === sapphireMaxAmountDB) {
+    winningHouse = 'Sapphire';
+  }
+  setSettings(winningAmount);
+
+  //update text depending on if a connection to the database was established
+  return new Promise((resolve, reject) => {
+    if (querySnapshot.empty) {
+      text.text = 'DB Error';
+      reject('Not loaded');
+    } else {
+      text.text = 'START';
+      resolve('data loaded');
+    }
+  });
+}
+
+function startIntroScene() {
+  //Prepare monospaced font
+
+  introWorld = new IntroWorld(introCanvas as HTMLCanvasElement);
+  introStage = introWorld.getStage();
+  introApp = introWorld.getApp();
+
+  text = introWorld.createText('LOADING');
+
+  introStage.addChild(text);
+  text.zIndex = 100;
+}
+
+function startGame() {
+  //allows start canvas to be clicked after DB is loaded
+  introCanvas.addEventListener('click', () => {
+    gameLogic();
+  });
+}
+
 function gameLogic() {
   audio.play();
   if (clicked) return;
@@ -248,7 +241,7 @@ function gameLogic() {
 <canvas class="canvas" id="canvasC"></canvas>
 <canvas class="canvas" id="canvasD"></canvas>`;
 
-  introCanvas.style.zIndex = '-1';
+  introCanvas.style.zIndex = '-1'; //hides the introCanvas
   gsap
     .to(introStage, {
       pixi: {
@@ -258,8 +251,7 @@ function gameLogic() {
       ease: 'expo.in',
     })
     .then(() => {
-      // introStage.destroy();
-
+      //create 4 simulation classes which aggregate the renderer and physics classes together
       ruby = new Simulation(
         new pixiWorld(
           document.getElementById('canvasA') as HTMLCanvasElement,
@@ -327,7 +319,7 @@ function gameLogic() {
     .then(() => {
       introCanvas.style.display = 'none';
       introApp.destroy();
-
+      //animate house names
       let timeline = gsap.timeline();
       timeline.to(ruby.App.titleText, {
         pixi: {
@@ -399,8 +391,13 @@ loader()
     startIntroScene();
   })
   .then(() => {
+    //use getData to return points data from the DB
+    // use getPracticeData for dev:
+    //getPracticeData().then(()=> {
+    // startGame()
+    // })
     getData().then(() => {
       startGame();
     });
   });
-//allows game to start after data is loaded.  Promise is rejected
+//allows game to start after data is loaded.
