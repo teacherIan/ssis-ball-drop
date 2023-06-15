@@ -399,12 +399,8 @@ loader()
     startIntroScene();
   })
   .then(() => {
-    getData()
-      .then(() => {
-        startGame();
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    getData().then(() => {
+      startGame();
+    });
   });
 //allows game to start after data is loaded.  Promise is rejected
